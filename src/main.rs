@@ -274,6 +274,15 @@ fn decrypt(password: &str, file_path: &str, nonce: &[u8]) -> Result<(), EncryptE
     // So, in summary, this code snippet is determining the path for the decrypted file. If the encrypted file has an extension,
     // it removes the extension to get the original file name. If the encrypted file has no extension, it uses the encrypted file's name as is.
 
+    // @explanation: Why need to use `to_string()` for `name_without_extension` and `file_path`?
+    // In this program, the conversion from a string slice (&str) to an owned String is necessary because of the way the decrypted_file_path is used below.
+    // The decrypted_file_path is determined within the decrypt function and is then used to create a new file with File::create(decrypted_file_path)?.
+    // The File::create function requires its argument to be an owned String or something that can be converted into an owned String. A string slice (&str)
+    // would not suffice here because it’s just a borrowed reference, and File::create needs ownership of its argument.
+    // Moreover, the decrypted_file_path is created based on the file_path argument to the decrypt function. If I were to use a string slice that points
+    // into file_path, it would be tied to the lifetime of file_path. If file_path is modified or goes out of scope, the string slice would no longer be valid.
+    // By creating an owned String, I ensure that decrypted_file_path is valid for as long as it needs to be.
+
     // Write the decrypted contents to a new file
     let mut decrypted_file = File::create(decrypted_file_path)?;
     decrypted_file.write_all(&contents)?;
